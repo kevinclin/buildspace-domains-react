@@ -188,6 +188,13 @@ const App = () => {
     setLoading(false);
   };
 
+  const switchNetwork = async () => {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: '0x13881' }], // chainId must be in hexadecimal numbers
+    });
+  };
+
   // Create a function to render if wallet is not connected yet
   const renderNotConnectedContainer = () => (
     <div className="connect-wallet-container">
