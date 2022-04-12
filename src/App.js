@@ -18,6 +18,8 @@ const App = () => {
   const [domain, setDomain] = useState('');
   const [record, setRecord] = useState('');
   const [network, setNetwork] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const connectWallet = async () => {
     try {
@@ -119,6 +121,33 @@ const App = () => {
     }
   };
 
+  const updateDomain = async () => {
+    if (!record || !domain) {
+      return;
+    }
+    setLoading(true);
+    console.log('Updating domain', domain, 'with record', record);
+    try {
+      const { ethereum } = window;
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractAbi.abi, signer);
+
+        let tx = await contract.setRecord(domain, record);
+        await tx.wait();
+        console.log('Record set https://mumbai.polygonscan.com/tx/' + tx.hash);
+
+        fetchMints();
+        setRecord('');
+        setDomain('');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    setLoading(false);
+  };
+
   // Create a function to render if wallet is not connected yet
   const renderNotConnectedContainer = () => (
     <div className="connect-wallet-container">
@@ -131,6 +160,17 @@ const App = () => {
 
   // Form to enter domain name and data
   const renderInputForm = () => {
+    if (network !== 'Polygon Mumbai Testnet') {
+      return (
+        <div className="connect-wallet-container">
+          <p>Please connect to Polygon Mumbai Testnet</p>
+          <button className="cta-button mint-button" onClick={switchNetwork}>
+            Click here to switch
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className="form-container">
         <div className="first-row">
@@ -141,19 +181,27 @@ const App = () => {
         <input
           type="text"
           value={record}
-          placeholder="whats ur fav artist"
+          placeholder="whats ur ninja power?"
           onChange={(e) => setRecord(e.target.value)}
         />
-
-        <div className="button-container">
-          {/* Call the mintDomain function when the button is clicked*/}
-          <button className="cta-button mint-button" onClick={mintDomain}>
+        {/* If the editing variable is true, return the "Set record" and "Cancel" button */}
+        {editing ? (
+          <div className="button-container">
+            {/* // This will call the updateDomain function we just made */}
+            <button className="cta-button mint-button" disabled={loading} onClick={updateDomain}>
+              Set record
+            </button>
+            {/* // This will let us get out of editing mode by setting editing to false */}
+            <button className="cta-button mint-button" onClick={() => setEditing(false)}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          // If editing is not true, the mint button will be returned instead
+          <button className="cta-button mint-button" disabled={loading} onClick={mintDomain}>
             Mint
           </button>
-          <button className="cta-button mint-button" disabled={null} onClick={null}>
-            Set data
-          </button>
-        </div>
+        )}
       </div>
     );
   };
