@@ -1,8 +1,11 @@
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
+import ethLogo from './assets/ethlogo.png';
+import polygonLogo from './assets/polygonlogo.png';
 import twitterLogo from './assets/twitter-logo.svg';
 import './styles/App.css';
 import contractAbi from './utils/contractABI.json';
+import { networks } from './utils/networks';
 
 // Constants
 const TWITTER_HANDLE = '_buildspace';
@@ -14,6 +17,7 @@ const App = () => {
   const [currentAccount, setCurrentAccount] = useState('');
   const [domain, setDomain] = useState('');
   const [record, setRecord] = useState('');
+  const [network, setNetwork] = useState('');
 
   const connectWallet = async () => {
     try {
@@ -46,16 +50,25 @@ const App = () => {
       console.log('We have the ethereum object', ethereum);
     }
 
-    // Check if we're authorized to access the user's wallet
     const accounts = await ethereum.request({ method: 'eth_accounts' });
 
-    // Users can have multiple authorized accounts, we grab the first one if its there!
     if (accounts.length !== 0) {
       const account = accounts[0];
       console.log('Found an authorized account:', account);
       setCurrentAccount(account);
     } else {
       console.log('No authorized account found');
+    }
+
+    // This is the new part, we check the user's network chain ID
+    const chainId = await ethereum.request({ method: 'eth_chainId' });
+    setNetwork(networks[chainId]);
+
+    ethereum.on('chainChanged', handleChainChanged);
+
+    // Reload the page when they change networks
+    function handleChainChanged(_chainId) {
+      window.location.reload();
     }
   };
 
@@ -158,6 +171,17 @@ const App = () => {
             <div className="left">
               <p className="title">🌎 Crew Name Service</p>
               <p className="subtitle">Your immortal API on the blockchain!</p>
+            </div>
+            {/* Display a logo and wallet connection status*/}
+            <div className="right">
+              <img alt="Network logo" className="logo" src={network.includes('Polygon') ? polygonLogo : ethLogo} />
+              {currentAccount ? (
+                <p>
+                  Wallet: {currentAccount.slice(0, 6)}...{currentAccount.slice(-4)}
+                </p>
+              ) : (
+                <p> Not connected </p>
+              )}
             </div>
           </header>
         </div>
