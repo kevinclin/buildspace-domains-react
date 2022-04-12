@@ -8,7 +8,7 @@ import contractAbi from './utils/contractABI.json';
 const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 const tld = '.crew';
-const CONTRACT_ADDRESS = '0x3D9a0AA4338e8168a2f236D7cA0eA63CE8E6ad14';
+const CONTRACT_ADDRESS = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
 
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState('');
